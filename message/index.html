@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<style>
+    *{
+        margin: 0;
+        padding: 0;
+    }
+    .qwe{
+        width: 500px;
+        border: 1px solid #1c1b21;
+        margin: 20px auto;
+        position: relative;
+    }
+    h3{
+        padding: 2px 5px;
+        background-color: white;
+        position: absolute;
+        left: 100px;
+        top: -14px;
+    }
+    .qwe>div{
+        margin: 30px 15px;
+    }
+    .qwe>div input{
+        width: 300px;
+        height: 30px;
+    }
+    .btn{
+        margin-bottom: 20px;
+        margin-left: 65px;
+        width: 100px;
+        height: 50px;
+        font-size: 20px;
+    }
+    .cbtn{
+        margin-bottom: 20px;
+        margin-left: 65px;
+        width: 100px;
+        height: 50px;
+        font-size: 20px;
+    }
+    .we{
+        width: 500px;
+        border: 1px solid #1c1b21;
+        margin: 20px auto;
+
+    }
+    .bg{
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,.5);
+        position: absolute;
+        left:0;
+        top:0;
+        display: none
+    }
+    .box1{
+        background: #fff;
+        position: fixed;
+        left:50%;
+        top:50%;
+        margin:-158px 0 0 -240px;
+        display: none
+    }
+</style>
+<script src="./js/jquery-3.3.1.min.js"></script>
+<body>
+    <div class='qwe'>
+        <h3>信息管理</h3>
+        <div>
+            <label>姓名：</label><input type="text" name="name">
+        </div>
+        <div>
+            <label>年龄：</label><input type="text" name="age">
+        </div>
+        <div>
+            <label>备注：</label><input type="text" name="remk">
+        </div>
+        <button class="btn">提交信息</button>
+    </div>
+    <div class="we">
+        <table border="1px solid black" cellpadding="0" cellspacing="0" width="100%" style="text-align: center;">
+            <tr>
+                <th>序号</th>
+                <th>姓名</th>
+                <th>年龄</th>
+                <th>备注</th>
+                <th>操作</th>
+            </tr>
+        </table>
+    </div>
+    <div class="bg"></div>
+    <div class='qwe box1'>
+        <h3>修改信息管理</h3>
+        <div>
+            <label>姓名：</label><input type="text" name="name">
+        </div>
+        <div>
+            <label>年龄：</label><input type="text" name="age">
+        </div>
+        <div>
+            <label>备注：</label><input type="text" name="remk">
+        </div>
+        <button class="cbtn">修改信息</button>
+    </div>
+    <script>
+        $(function(){
+            //将数据库数据显示出来 即查数据
+            $.ajax({
+                url:'http://127.0.0.1/find',
+                success(res){
+                    var data=res.result
+                    var str=""
+                    for (let i=0;i<data.length;i++){
+                        str +="<tr><td>"+(i+1)+"</td><td>"+data[i].name+"</td><td>"+data[i].age+"</td><td>"+data[i].remk+"</td><td><button class='change'>修改</button> <button class='del' dataId="+data[i]._id+">删除</button></td></tr>"
+                    }
+                    $('table').append(str)
+                }
+            })
+
+            //删除数据
+            $('table').on('click','.del',function(){
+               var _id=$(this).attr('dataId')
+                // console.log(_id)
+                if(window.confirm("确认删除吗？")){
+
+                $.ajax({
+                    url:'http://127.0.0.1/del',
+                    data:{
+                       _id,
+                    },
+                    success(res){
+                        if (res.ok){
+                            alert(res.msg)
+                        } else{
+                            alert(res.msg)
+                        }
+
+                        window.location.reload()
+                    }
+                })
+                }
+            })
+
+            //插入数据
+            $('.btn').click(function(){
+                var name=$('input').eq(0).val()
+                var age=$('input').eq(1).val()
+                var remk=$('input').eq(2).val()
+                $.ajax({
+                    url:'http://127.0.0.1/add',
+                    data:{
+                        name,
+                        age,
+                        remk,
+                    },
+                    success(res){
+                       if (res.ok){
+                           alert(res.msg)
+                       } else{
+                           alert(res.msg)
+                       }
+                        $('input').eq(0).val('')
+                        $('input').eq(1).val('')
+                        $('input').eq(2).val('')
+                        window.location.reload()
+                    }
+                })
+            })
+
+            //修改数据
+            var OldMsg={}
+            $('table').on('click','.change',function(){
+                $('.bg').show()
+                $('.box1').show()
+                var remk=$(this).parent().prev().html()
+                var age=$(this).parent().prev().prev().html()
+                var name=$(this).parent().prev().prev().prev().html()
+
+                $('.box1 input').eq(0).val(name)
+                $('.box1 input').eq(1).val(age)
+                $('.box1 input').eq(2).val(remk)
+
+                OldMsg={name,age,remk}
+                // console.log(remk,age,name)
+            })
+            $('.cbtn').click(function(){
+                $('.bg').hide()
+                $('.box1').hide()
+
+                var NewMsg={
+                    name:$('.box1 input').eq(0).val(),
+                    age:$('.box1 input').eq(1).val(),
+                    remk:$('.box1 input').eq(2).val(),
+                }
+                $.ajax({
+                    url:"http://127.0.0.1/update",
+                    data:{
+                        OldMsg,
+                        NewMsg,
+                    },
+                    success(res){
+                        if (res.ok){
+                            alert(res.msg)
+                        } else{
+                            alert(res.msg)
+                        }
+                        window.location.reload()
+                    }
+                })
+            })
+
+        })
+
+    </script>
+</body>
+</html>
